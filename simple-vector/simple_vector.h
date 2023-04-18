@@ -96,13 +96,13 @@ public:
 
     // Возвращает ссылку на элемент с индексом index
     Type& operator[](size_t index) noexcept {
-        assert(size_ != 0);
+        assert(!IsEmpty());
         return ptr_[index];
     }
 
     // Возвращает константную ссылку на элемент с индексом index
     const Type& operator[](size_t index) const noexcept {
-        assert(size_ != 0);
+        assert(!IsEmpty());
         return ptr_[index];
     }
 
@@ -137,7 +137,6 @@ public:
             return;
         }
         if (new_size <= capacity_) {
-            // std::fill(begin()+size_, begin()+new_size-1, std::move(Type()));
             for(size_t i = size_; i < new_size; ++i) {
                 ptr_[i] = std::move(Type());
             }
@@ -150,8 +149,7 @@ public:
         std::copy(std::make_move_iterator(begin()), std::make_move_iterator(end()), new_items.Get());
         ptr_.swap(new_items);
         capacity_ = new_cap;
-        // std::fill(begin()+size_, begin()+(capacity_ - 1), Type());
-            for(size_t i =size_; i < capacity_; ++i) {
+        for(size_t i =size_; i < capacity_; ++i) {
                 ptr_[i] = std::move(Type());
             }
         size_ = new_size;
@@ -280,10 +278,9 @@ public:
 
     // "Удаляет" последний элемент вектора. Вектор не должен быть пустым
     void PopBack() noexcept {
-        if(!IsEmpty()) {
-            --size_;
-            ptr_[size_] = Type();
-        }
+        assert(!IsEmpty());
+        --size_;
+        ptr_[size_] = Type();
     }
 
     // Удаляет элемент вектора в указанной позиции
@@ -328,16 +325,15 @@ inline bool operator<(const SimpleVector<Type>& lhs, const SimpleVector<Type>& r
 
 template <typename Type>
 inline bool operator<=(const SimpleVector<Type>& lhs, const SimpleVector<Type>& rhs) {
-    return lhs == rhs || lhs < rhs;
+    return !(rhs < lhs);
 }
 
 template <typename Type>
 inline bool operator>(const SimpleVector<Type>& lhs, const SimpleVector<Type>& rhs) {
-    return !(lhs == rhs) && !(lhs < rhs);
+    return rhs < lhs;
 }
 
 template <typename Type>
 inline bool operator>=(const SimpleVector<Type>& lhs, const SimpleVector<Type>& rhs) {
-    // Заглушка. Напишите тело самостоятельно
-    return lhs == rhs || !(lhs < rhs);
+    return !(lhs < rhs);
 }
